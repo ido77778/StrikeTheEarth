@@ -1,0 +1,13 @@
+{
+    "type": "code",
+    "modid": "striketheearth",
+    "name": "striketheearth",
+    "authors": [
+        "Hayyerboa"
+    ],
+    "description": "Testing some stuff le sigh...",
+    "version": "0.0.1",
+    "dependencies": {
+        "game": ""
+    }
+}
