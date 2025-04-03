@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using StrikeTheEarth.Entities;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -91,11 +92,11 @@ namespace StrikeTheEarth.Items
 			if (byEntity is EntityPlayer) byPlayer = byEntity.World.PlayerByUid(((EntityPlayer)byEntity).PlayerUID);
 			byEntity.World.PlaySoundAt(new AssetLocation("sounds/player/throw"), byEntity, byPlayer, false, 8);
 
-			EntityProperties type = byEntity.World.GetEntityType(new AssetLocation("thrownsnowball-" + Variant["rock"]));
+			EntityProperties type = byEntity.World.GetEntityType(new AssetLocation("thrownstick"));
 			Entity entity = byEntity.World.ClassRegistry.CreateEntity(type);
-			((EntityThrownSnowball)entity).FiredBy = byEntity;
-			((EntityThrownSnowball)entity).Damage = damage;
-			((EntityThrownSnowball)entity).ProjectileStack = stack;
+			((EntityThrownStick)entity).FiredBy = byEntity;
+			((EntityThrownStick)entity).Damage = damage;
+			((EntityThrownStick)entity).ProjectileStack = stack;
 
 
 			float acc = (1 - byEntity.Attributes.GetFloat("aimingAccuracy", 0));

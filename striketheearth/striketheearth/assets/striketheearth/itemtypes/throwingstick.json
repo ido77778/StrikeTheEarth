@@ -1,6 +1,6 @@
 {
   "code": "throwingstick",
-  "class": "striketheearth.throwingstick",
+  //"class": "striketheearth.throwingstick",
   "creativeinventory": {
     "general": [ "*" ],
     "cubeymod": [ "*" ]

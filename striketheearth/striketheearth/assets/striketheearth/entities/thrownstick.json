@@ -1,6 +1,6 @@
 {
   "code": "thrownstick",
-  "class": "striketheearth.thrownstick",
+  //"class": "striketheearth.thrownstick",
   "hitboxSize": {
     "x": 0.25,
     "y": 0.25
