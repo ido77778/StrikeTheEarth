@@ -5,6 +5,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
@@ -12,12 +13,36 @@ namespace StrikeTheEarth.Items
 {
 	internal class ItemThrowingStick : Item
 	{
-		float damage;
-
 		public override void OnLoaded(ICoreAPI api)
 		{
 			base.OnLoaded(api);
-			damage = Attributes["damage"].AsFloat(0.001f);
+
+			var bh = GetCollectibleBehavior<CollectibleBehaviorAnimationAuthoritative>(true);
+
+			if (bh == null)
+			{
+				//api.World.Logger.Warning("Spear {0} uses ItemSpear class, but lacks required AnimationAuthoritative behavior. I'll take the freedom to add this behavior, but please fix json item type.", Code);
+				bh = new CollectibleBehaviorAnimationAuthoritative(this);
+				bh.OnLoaded(api);
+				CollectibleBehaviors = CollectibleBehaviors.Append(bh);
+			}
+
+			bh.OnBeginHitEntity += ItemThrowingStick_OnBeginHitEntity;
+		}
+
+		private void ItemThrowingStick_OnBeginHitEntity(EntityAgent byEntity, ref EnumHandling handling)
+		{
+			if (byEntity.World.Side == EnumAppSide.Client)
+			{
+				return;
+			}
+
+			var entitySel = (byEntity as EntityPlayer)?.EntitySelection;
+
+			if (byEntity.Attributes.GetInt("didattack") == 0 && entitySel != null)
+			{
+				byEntity.Attributes.SetInt("didattack", 1);
+			}
 		}
 
 		public override string GetHeldTpUseAnimation(ItemSlot activeHotbarSlot, Entity byEntity)
@@ -27,39 +52,19 @@ namespace StrikeTheEarth.Items
 
 		public override void OnHeldInteractStart(ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
 		{
-			// Allow picking up of more snowballs while having snowballs in hand
-			if (blockSel != null && BlockBehaviorSnowballable.canPickSnowballFrom(api.World.BlockAccessor.GetBlock(blockSel.Position), blockSel.Position, (byEntity as EntityPlayer).Player))
-			{
-				handling = EnumHandHandling.NotHandled;
-				return;
-			}
+			base.OnHeldInteractStart(itemslot, byEntity, blockSel, entitySel, firstEvent, ref handling);
+			if (handling == EnumHandHandling.PreventDefault) return;
+
+			handling = EnumHandHandling.PreventDefault;
 
 			// Not ideal to code the aiming controls this way. Needs an elegant solution - maybe an event bus?
 			byEntity.Attributes.SetInt("aiming", 1);
 			byEntity.Attributes.SetInt("aimingCancel", 0);
 			byEntity.StartAnimation("aim");
-
-			handling = EnumHandHandling.PreventDefault;
 		}
 
 		public override bool OnHeldInteractStep(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
 		{
-			if (byEntity.Attributes.GetInt("aimingCancel") == 1) return false;
-
-			if (byEntity.World is IClientWorldAccessor)
-			{
-				ModelTransform tf = new ModelTransform();
-				tf.EnsureDefaultValues();
-
-				float offset = GameMath.Clamp(secondsUsed * 3, 0, 1.5f);
-
-				tf.Translation.Set(offset / 4f, offset / 2f, 0);
-				tf.Rotation.Set(0, 0, GameMath.Min(90, secondsUsed * 360 / 1.5f));
-
-				byEntity.Controls.UsingHeldItemTransformBefore = tf;
-			}
-
-
 			return true;
 		}
 
@@ -85,46 +90,79 @@ namespace StrikeTheEarth.Items
 
 			if (secondsUsed < 0.35f) return;
 
+			float damage = 1.5f;
+
+			if (slot.Itemstack.Collectible.Attributes != null)
+			{
+				damage = slot.Itemstack.Collectible.Attributes["damage"].AsFloat(0);
+			}
+
+			(api as ICoreClientAPI)?.World.AddCameraShake(0.17f);
+
 			ItemStack stack = slot.TakeOut(1);
 			slot.MarkDirty();
 
 			IPlayer byPlayer = null;
 			if (byEntity is EntityPlayer) byPlayer = byEntity.World.PlayerByUid(((EntityPlayer)byEntity).PlayerUID);
+
 			byEntity.World.PlaySoundAt(new AssetLocation("sounds/player/throw"), byEntity, byPlayer, false, 8);
 
-			EntityProperties type = byEntity.World.GetEntityType(new AssetLocation("thrownstick"));
-			Entity entity = byEntity.World.ClassRegistry.CreateEntity(type);
-			((EntityThrownStick)entity).FiredBy = byEntity;
-			((EntityThrownStick)entity).Damage = damage;
-			((EntityThrownStick)entity).ProjectileStack = stack;
+			EntityProperties type = byEntity.World.GetEntityType(new AssetLocation("striketheearth:thrownstick"));
+			EntityProjectile enpr = byEntity.World.ClassRegistry.CreateEntity(type) as EntityProjectile;
+			enpr.FiredBy = byEntity;
+			enpr.Damage = damage;
+			enpr.DamageTier = Attributes["damageTier"].AsInt(0);
+			enpr.ProjectileStack = stack;
+			enpr.DropOnImpactChance = 1.1f;
+			enpr.DamageStackOnImpact = true;
+			enpr.Weight = 0.3f;
 
 
 			float acc = (1 - byEntity.Attributes.GetFloat("aimingAccuracy", 0));
 			double rndpitch = byEntity.WatchedAttributes.GetDouble("aimingRandPitch", 1) * acc * 0.75;
 			double rndyaw = byEntity.WatchedAttributes.GetDouble("aimingRandYaw", 1) * acc * 0.75;
 
-			Vec3d pos = byEntity.ServerPos.XYZ.Add(0, byEntity.LocalEyePos.Y, 0);
+			Vec3d pos = byEntity.ServerPos.XYZ.Add(0, byEntity.LocalEyePos.Y - 0.2, 0);
+
 			Vec3d aheadPos = pos.AheadCopy(1, byEntity.ServerPos.Pitch + rndpitch, byEntity.ServerPos.Yaw + rndyaw);
-			Vec3d velocity = (aheadPos - pos) * 0.5;
+			Vec3d velocity = (aheadPos - pos) * 0.65 * byEntity.Stats.GetBlended("bowDrawingStrength");
+			Vec3d spawnPos = byEntity.ServerPos.BehindCopy(0.15).XYZ.Add(byEntity.LocalEyePos.X, byEntity.LocalEyePos.Y - 0.2, byEntity.LocalEyePos.Z);
 
-			entity.ServerPos.SetPosWithDimension(
-				byEntity.ServerPos.BehindCopy(0.21).XYZ.Add(0, byEntity.LocalEyePos.Y, 0)
-			);
+			enpr.ServerPos.SetPosWithDimension(spawnPos);
+			enpr.ServerPos.Motion.Set(velocity);
 
-			entity.ServerPos.Motion.Set(velocity);
 
-			entity.Pos.SetFrom(entity.ServerPos);
-			entity.World = byEntity.World;
+			enpr.Pos.SetFrom(enpr.ServerPos);
+			enpr.World = byEntity.World;
+			enpr.SetRotation();
 
-			byEntity.World.SpawnEntity(entity);
+			byEntity.World.SpawnEntity(enpr);
 			byEntity.StartAnimation("throw");
-			if (byEntity is EntityPlayer) RefillSlotIfEmpty(slot, byEntity, (itemstack) => itemstack.Collectible is ItemSnowball);
+
+			if (byEntity is EntityPlayer) RefillSlotIfEmpty(slot, byEntity, (itemstack) => itemstack.Collectible is ItemSpear);
+
+			var pitch = (byEntity as EntityPlayer).talkUtil.pitchModifier;
+			byPlayer.Entity.World.PlaySoundAt(new AssetLocation("sounds/player/strike"), byPlayer.Entity, byPlayer, pitch * 0.9f + (float)api.World.Rand.NextDouble() * 0.2f, 16, 0.35f);
+		}
+
+		public override void OnHeldAttackStop(float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSelection, EntitySelection entitySel)
+		{
+
 		}
 
 		public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo)
 		{
 			base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
-			dsc.AppendLine(Lang.Get("{0} blunt damage when thrown", damage));
+			if (inSlot.Itemstack.Collectible.Attributes == null) return;
+
+			float damage = 1.5f;
+
+			if (inSlot.Itemstack.Collectible.Attributes != null)
+			{
+				damage = inSlot.Itemstack.Collectible.Attributes["damage"].AsFloat(0);
+			}
+
+			dsc.AppendLine(damage + Lang.Get("piercing-damage-thrown"));
 		}
 
 		public override WorldInteraction[] GetHeldInteractionHelp(ItemSlot inSlot)

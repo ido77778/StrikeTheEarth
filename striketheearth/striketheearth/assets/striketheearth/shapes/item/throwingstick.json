@@ -1,10 +1,4 @@
 {
-	"editor": {
-		"backDropShape": "C:/Users/marsh/AppData/Roaming/Vintagestory/assets/game/shapes/entity/humanoid/seraph",
-		"collapsedPaths": "",
-		"allAngles": false,
-		"entityTextureMode": false
-	},
 	"textureWidth": 16,
 	"textureHeight": 16,
 	"textureSizes": {

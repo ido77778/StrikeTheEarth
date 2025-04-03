@@ -1,67 +1,102 @@
 {
-    "code": "throwingstick",
-    "creativeinventory": {
-        "general": [ "*" ],
-        "cubeymod": [ "*" ]
+  "code": "throwingstick",
+  "class": "striketheearth.ItemThrowingStick",
+  "damagedby": [ "attacking" ],
+  "behaviors": [
+    {
+      "name": "GroundStorable",
+      "properties": {
+        "layout": "WallHalves",
+        "wallOffY": 2,
+        "ctrlKey": true,
+        "selectionBox": {
+          "x1": 0,
+          "y1": 0,
+          "z1": 0,
+          "x2": 1,
+          "y2": 0.1,
+          "z2": 1
+        },
+        "collisionBox": {
+          "x1": 0,
+          "y1": 0,
+          "z1": 0,
+          "x2": 0,
+          "y2": 0,
+          "z2": 0
+        }
+      }
     },
-    "texture": {
-        "base": "item/throwingstick"
+    { "name": "AnimationAuthoritative" }
+  ],
+  "creativeinventory": {
+    "general": [ "*" ],
+    "Strike The Earth": [ "*" ]
+  },
+  "texture": {
+    "base": "item/throwingstick"
+  },
+  "shape": {
+    "base": "item/throwingstick"
+  },
+  "attackRange": 3.5,
+  "attackPower": 1.75,
+  "attributes": {
+    "__comment": "Thrown damage",
+    "damage": 0.5
+  },
+  "guiTransform": {
+    "translation": {
+      "x": -23.19,
+      "y": 36.2,
+      "z": 0
     },
-    "shape": {
-        "base": "item/throwingstick"
+    "rotation": {
+      "x": 0,
+      "y": 180,
+      "z": 67
     },
-    "guiTransform": {
-        "translation": {
-            "x": -23.19,
-            "y": 36.2,
-            "z": 0
-        },
-        "rotation": {
-            "x": 0,
-            "y": 180,
-            "z": 67
-        },
-        "origin": {
-            "x": 0.48,
-            "y": 0,
-            "z": 0.38
-        },
-        "scale": 2.36
+    "origin": {
+      "x": 0.48,
+      "y": 0,
+      "z": 0.38
     },
-    "groundTransform": {
-        "translation": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-        },
-        "rotation": {
-            "x": -90,
-            "y": 0,
-            "z": 0
-        },
-        "origin": {
-            "x": 0.5,
-            "y": 0,
-            "z": 0.5
-        },
-        "scale": 5.48
+    "scale": 2.36
+  },
+  "groundTransform": {
+    "translation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
     },
-    "tpHandTransform": {
-        "translation": {
-            "x": 0.003,
-            "y": -0.035,
-            "z": -0.541
-        },
-        "rotation": {
-            "x": 0,
-            "y": -180,
-            "z": 0
-        },
-        "origin": {
-            "x": 0.7,
-            "y": 0,
-            "z": 0.5
-        },
-        "scale": 1.19
-    }
+    "rotation": {
+      "x": -90,
+      "y": 0,
+      "z": 0
+    },
+    "origin": {
+      "x": 0.5,
+      "y": 0,
+      "z": 0.5
+    },
+    "scale": 5.48
+  },
+  "tpHandTransform": {
+    "translation": {
+      "x": 0.003,
+      "y": -0.035,
+      "z": -0.541
+    },
+    "rotation": {
+      "x": 0,
+      "y": -180,
+      "z": 0
+    },
+    "origin": {
+      "x": 0.7,
+      "y": 0,
+      "z": 0.5
+    },
+    "scale": 1.19
+  }
 }

@@ -1,9 +1,16 @@
 {
   "code": "thrownstick",
-  //"class": "striketheearth.thrownstick",
+  "class": "EntityProjectile",
+  "attributes": {
+    "isProjectile": true,
+    "physics": {
+      "groundDragFactor": 1,
+      "airDragFactor": 0.25
+    }
+  },
   "hitboxSize": {
-    "x": 0.25,
-    "y": 0.25
+    "x": 0.4,
+    "y": 0.2
   },
   "deadHitboxSize": {
     "x": 0.25,
@@ -12,30 +19,37 @@
   "client": {
     "renderer": "Shape",
     "textures": {
-      "normal2": { "base": "block/reed/beehive/beenade" }
+      "material": { "base": "item/throwingstick" }
     },
     "shape": { "base": "item/throwingstick" },
     "size": 1,
     "behaviors": [
-      { "code": "passivephysics" },
-      { "code": "interpolateposition" }
+      {
+        "code": "passivephysics",
+        "groundDragFactor": 1,
+        "airDragFactor": 0.25,
+        "gravityFactor": 0.75
+      },
+      {
+        "code": "despawn",
+        "minSeconds": 120
+      }
     ]
   },
   "server": {
     "behaviors": [
-      { "code": "passivephysics" },
+      {
+        "code": "passivephysics",
+        "groundDragFactor": 1,
+        "airDragFactor": 0.25,
+        "gravityFactor": 0.75
+      },
       {
         "code": "despawn",
-        "minSeconds": 100
+        "minSeconds": 300
       }
     ]
   },
   "sounds": {
-  },
-  "attributes": {
-    "physics": {
-      "groundDragFactor": 1,
-      "airDragFactor": 0.25
-    }
   }
 }
