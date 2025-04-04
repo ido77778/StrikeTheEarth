@@ -61,7 +61,7 @@ namespace StrikeTheEarth.Items
 			byEntity.Attributes.SetInt("aiming", 1);
 			byEntity.Attributes.SetInt("aimingCancel", 0);
 			byEntity.StartAnimation("aim");
-		}
+		} 
 
 		public override bool OnHeldInteractStep(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
 		{
@@ -108,7 +108,7 @@ namespace StrikeTheEarth.Items
 			byEntity.World.PlaySoundAt(new AssetLocation("sounds/player/throw"), byEntity, byPlayer, false, 8);
 
 			EntityProperties type = byEntity.World.GetEntityType(new AssetLocation("striketheearth:thrownstick"));
-			EntityProjectile enpr = byEntity.World.ClassRegistry.CreateEntity(type) as EntityProjectile;
+			EntityThrownStick enpr = byEntity.World.ClassRegistry.CreateEntity(type) as EntityThrownStick;
 			enpr.FiredBy = byEntity;
 			enpr.Damage = damage;
 			enpr.DamageTier = Attributes["damageTier"].AsInt(0);

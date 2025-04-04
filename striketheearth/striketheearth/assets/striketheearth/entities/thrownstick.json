@@ -1,6 +1,6 @@
 {
   "code": "thrownstick",
-  "class": "EntityProjectile",
+  "class": "striketheearth.EntityThrownStick",
   "attributes": {
     "isProjectile": true,
     "physics": {
